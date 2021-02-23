@@ -168,7 +168,21 @@ min(salary),
 max(salary)-min(salary) as "Difference"
 FROM employees;
 
-
+-- SUBQUERIES
+--    Using a Subquery to solve a problem
+--    Problem:
+--    Who has a salary greater than Abel’s salary?
+--    Solution:
+--    2 steps
+--    ? Find out how much Abel earns
+--    ? Find out who earns more than that amount
+select last_name, salary,
+    salary - (select salary from employees where last_name = 'Abel') as "Difference"
+from employees
+where salary > (
+    select salary
+    from employees
+    where last_name = 'Abel');
 
 
 
