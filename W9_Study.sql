@@ -91,3 +91,45 @@ begin
   dbms_output.put_line('Product Name: ' || productName);
   dbms_output.put_line('Product Price: ' || price);
 end;
+
+-- SELECT INTO
+-- more than one row retrieved
+-- creates an error
+-- need to handle it
+declare
+  ProductType varchar2(20) := 'Tents';
+  productName varchar2(255 byte);
+  price number(9,2);
+begin
+  select prod_name, prod_sell into productName, price
+  from products
+  where prod_type = ProductType;
+  
+  dbms_output.put_line('Product Name: ' || productName);
+  dbms_output.put_line('Product Price: ' || price);
+
+exception
+  when too_many_rows
+    then
+      dbms_output.put_line('Too many rows returned!');
+end;
+
+-- NO DATA FOUND
+declare
+  ProductNo number := 300;
+  productName varchar2(255 byte);
+  price number(9,2);
+begin
+  select prod_name, prod_sell into productName, price
+  from products
+  where prod_no = ProductNo;
+  
+  dbms_output.put_line('Product Name: ' || productName);
+  dbms_output.put_line('Product Price: ' || price);
+
+exception
+  when no_data_found
+    then
+      dbms_output.put_line('No data found!');
+end;
+
