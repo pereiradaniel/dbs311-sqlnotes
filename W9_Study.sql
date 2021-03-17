@@ -163,3 +163,164 @@ end;
 
 -- check
 select * from new_employees where employee_id = 1; -- should be no rows!
+
+-- CONTROL STATEMENTS
+-- IF THEN
+drop table new_employees;
+create table new_employees as (select * from employees);
+
+create or replace procedure remove_employee as
+  employeeId number;
+
+begin
+  employeeId := 3;
+  delete from new_employees
+  where employee_id = employeeId;
+
+  if SQL%ROWCOUNT = 0
+    then
+      dbms_output.put_line(
+      'Employee with ID ' || employeeId || ' does not exist');
+  end if;
+  
+exception
+  when others
+    then
+      dbms_output.put_line('Error!');
+end;
+
+-- run it
+begin
+  remove_employee(); -- removes employee 3
+end;
+
+-- run it again
+begin
+  remove_employee(); -- employee 3 does not exist!
+end;
+
+select * from new_employees where employee_id = 3;
+
+-- drop the table and recreate it
+drop table new_employees;
+create table new_employees as(select * from employees);
+
+-- IF THEN ELSE
+-- State what was deleted
+create or replace procedure remove_employee as
+  employeeId number;
+begin
+  employeeId := 3;
+  delete from new_employees
+    where employee_id = employeeId;
+
+  if SQL%ROWCOUNT = 0
+    then
+      dbms_output.put_line('Employee with ID ' || employeeId || ' does not exist');
+    else
+      dbms_output.put_line('Employee with ID ' || employeeId || ' DELETED!');
+  end if;
+exception
+when others
+  then
+  dbms_output.put_line('Error!');
+end;
+
+-- run it
+begin
+  remove_employee();
+end;
+select * from new_employees where employee_id = 3;
+
+-- IF THEN ELSE
+-- Testing the other IF or ELSE
+-- DO NOT ROLLBACK! leave employee 3 as deleted!
+
+create or replace procedure remove_employee as
+  employeeId number;
+
+begin
+  employeeId := 3;
+  delete from new_employees
+  where employee_id = employeeId;
+
+  if SQL%ROWCOUNT = 0 then
+    dbms_output.put_line('Employee with ID ' || employeeId || ' does not exist!');
+  else
+    dbms_output.put_line('Employee with ID ' || employeeId || ' DELETED!');
+  end if;
+
+exception
+when others
+  then
+    dbms_output.put_line('Error!');
+end;
+
+-- run it
+begin
+  remove_employee();
+end;
+
+-- IF THEN ELSIF
+select manager_id from new_employees;
+select * from new_employees where manager_id = 124;
+
+CREATE OR REPLACE PROCEDURE remove_employee AS
+  managerId NUMBER;
+
+BEGIN
+  managerId := 124;
+  DELETE FROM new_employees
+  WHERE manager_id = managerId;
+ 
+  IF SQL%ROWCOUNT = 0 
+    THEN
+      DBMS_OUTPUT.PUT_LINE ('No employee is deleted');
+  ELSIF SQL%ROWCOUNT = 1 
+    THEN
+      DBMS_OUTPUT.PUT_LINE ('One employee is deleted.');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE ('More than one employee is deleted!');
+  END IF;
+
+EXCEPTION
+WHEN OTHERS
+  THEN 
+    DBMS_OUTPUT.PUT_LINE ('Error!');
+END;
+
+-- run it
+begin
+  remove_employee();
+end;
+
+-- NESTING - IF THEN ELSE
+DECLARE
+  semester CHAR(1);
+BEGIN
+  semester := 'F';
+
+  CASE semester
+    WHEN 'F' THEN DBMS_OUTPUT.PUT_LINE('Fall Term');
+    WHEN 'W' THEN DBMS_OUTPUT.PUT_LINE('Winter Term');
+    WHEN 'S' THEN DBMS_OUTPUT.PUT_LINE('Summer Term');
+    ELSE DBMS_OUTPUT.PUT_LINE('Wrong Value');
+  END CASE;
+
+END;
+
+-- INPUT FROM USER
+CREATE OR REPLACE PROCEDURE  evenodd  (instuff in number) as
+BEGIN
+  if mod(instuff, 2) = 0 
+    then dbms_output.put_line('The number is even!');
+  else 
+    dbms_output.put_line('The number is odd!');
+  end if;
+END evenodd;
+
+--execution statement taking an input from user and passing it to the procedure
+BEGIN
+  evenodd(&input);  -- asks for input from user
+end;
+
