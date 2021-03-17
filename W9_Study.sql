@@ -133,3 +133,33 @@ exception
       dbms_output.put_line('No data found!');
 end;
 
+-- STORED PROCEDURES
+
+-- create a table called new_employees from employees table
+create table new_employees as (select * from employees);
+
+-- check data loaded
+select * from new_employees;
+
+-- remove employee 1
+create or replace procedure remove_employee as -- name procudure
+  employeeId number;
+begin
+  employeeId := 1;
+  delete from new_employees
+  where employee_id = employeeId;
+
+exception
+  when others
+    then
+      dbms_output.put_line('Error!');
+end;
+-- compiled!
+
+-- Test it:
+begin
+  remove_employee();
+end;
+
+-- check
+select * from new_employees where employee_id = 1; -- should be no rows!
