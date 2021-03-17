@@ -76,3 +76,18 @@ when others -- when others must be last!
     dbms_output.put_line('Error!');
 end;
 
+-- SELECT INTO
+-- one row retrieved from SELECT
+declare -- define variables
+  productId number := 40100;
+  productName varchar(255 byte);
+  price number(9,2);
+begin
+  select prod_name, prod_sell -- select data from these columns
+    into productName, price   -- insert them into the declared variables
+  from products
+  where prod_no = productId;  -- will get one row or none
+  -- output the findings assuming it worked
+  dbms_output.put_line('Product Name: ' || productName);
+  dbms_output.put_line('Product Price: ' || price);
+end;
