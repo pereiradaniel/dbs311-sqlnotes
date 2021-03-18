@@ -473,4 +473,126 @@ VALUES (902, 'Grant','grant2@yahoo.ca',sysdate,'IT_PROG',14000);
 SELECT employee_id, last_name,job_id,salary
 FROM employees   WHERE last_name = 'Grant';
 
+-- 2) Our second Code Example is a Block with Exception Handler that deals
+-- with BOTH exceptions, so you will not get Error messages
+DECLARE
+  v_lname employees.last_name%TYPE := 'GRANT' ;
+  v_pay   employees.salary%TYPE;
+  v_note  VARCHAR2(20) := 'FAIR';
+BEGIN
+  SELECT salary INTO v_pay
+  FROM   employees
+  WHERE  UPPER(last_name) = v_lname;
+    IF  v_pay < 3000  THEN
+                 v_note := 'POOR';
+    ELSIF  v_pay  < 6000  THEN
+                 v_note := 'FAIR';
+    ELSIF  v_pay < 10000 THEN
+                 v_note := 'GOOD';
+    ELSIF v_pay <= 15000  THEN
+                 v_note := 'EXCELLENT';
+    ELSE
+                 v_note := 'WOW';
+    END IF;
+    DBMS_OUTPUT.PUT_LINE(
+    'Employee ' || v_lname || ' has a monthly income of  $' ||  v_pay ||
+    ' which is ' || v_note);
+EXCEPTION
+       WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('Employee ' || v_lname || ' does NOT exist');
+       WHEN TOO_MANY_ROWS THEN
+            DBMS_OUTPUT.PUT_LINE('There is more than one employee with such last name: ' || v_lname);
+END;
 
+-- Test with HIGGINS and GRANT to see they still work then
+-- Test with ADAMS
+
+
+-- 3) Our third Code Example is a Stored Procedure that accepts one
+-- IN parameter, LAST_NAME. Watch how the code has changed, when using
+-- p_lname and not v_lname.
+
+CREATE OR REPLACE PROCEDURE find_sal(p_lname IN employees.last_name%TYPE)
+IS
+  v_pay  employees.salary%TYPE;
+  v_note VARCHAR2(20) := 'FAIR';
+BEGIN
+  SELECT  salary INTO v_pay
+  FROM    employees
+  WHERE   UPPER(last_name) = p_lname;
+
+  IF    v_pay  < 3000  THEN v_note := 'POOR';
+  ELSIF v_pay  < 6000  THEN v_note := 'FAIR';
+  ELSIF v_pay  < 10000 THEN v_note := 'GOOD';
+  ELSIF v_pay <= 15000 THEN v_note := 'EXCELLENT';
+  ELSE  v_note := 'WOW';
+  END IF;
+    DBMS_OUTPUT.PUT_LINE(
+    'Employee ' || p_lname || ' has a monthly income of  $'
+    ||  v_pay || ' which is ' || v_note);
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    DBMS_OUTPUT.PUT_LINE('Employee ' || p_lname || ' does NOT exist');
+  WHEN TOO_MANY_ROWS THEN
+    DBMS_OUTPUT.PUT_LINE('There is more than one employee with such last name: ' || p_lname);
+END;
+
+EXECUTE  find_sal('WHALEN');
+--Employee WHALEN has a monthly income of  $4400 which is FAIR
+--PL/SQL procedure successfully completed.
+
+EXECUTE  find_sal('GRANT');
+--There is more than one employee with such last name: GRANT
+--PL/SQL procedure successfully completed.
+
+EXECUTE  find_sal('DE NIRO');
+--Employee DE NIRO does NOT exist
+
+-- Because we added two employees called GRANT we need to remove them
+
+DELETE FROM employees
+WHERE  employee_id IN (901,902);
+-- 1 row deleted.
+
+commit;
+-- Commit complete.
+
+SELECT employee_id, last_name,job_id,salary
+FROM employees
+WHERE last_name = 'Grant';
+
+-- Problem: We are going to reduce Credit_Limit for all Customers, if they
+-- are on the Cancelled Order List, for a given PCT value, but we will also
+-- exclude a given Customer from that change.
+
+-- We will print a Number of customers that have been updated.
+-- Then we will UNDO our change with ROLLBACK command incorporated in
+-- the script.
+
+-- 1) Our first Code Example is a Block. It will need Three Variables:
+--    Customer_id, Pct value and a Number of customers updated..
+
+-- Firstly, we will find out who are those Customers and what is their
+-- Credit Limit
+
+SELECT cust_no, credit_limit FROM customers
+  WHERE cust_no in 
+    (SELECT DISTINCT customer_id FROM orders
+     WHERE status = 'Canceled')
+order by 1;
+
+DECLARE 
+    v_cust#  Customers.cust_no%TYPE := 8;
+    v_pct    INTEGER := 10;
+    v_number  INTEGER;
+BEGIN   
+   UPDATE customers SET credit_limit = credit_limit*(1 - v_pct / 100)
+   WHERE cust_no IN (SELECT DISTINCT cust_no
+				FROM orders  
+				WHERE status = 'Canceled')
+   AND   cust_no <> v_cust#;
+   v_number := SQL%ROWCOUNT; -- count number of rows
+   DBMS_OUTPUT.PUT_LINE('# of Customers with a decreased credit limit of ' || v_pct ||'% is ' || v_number);
+END;
+/
+ROLLBACK;
