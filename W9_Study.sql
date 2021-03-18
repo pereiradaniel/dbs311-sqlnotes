@@ -324,3 +324,109 @@ BEGIN
   evenodd(&input);  -- asks for input from user
 end;
 
+-- Problem: For a given CITY name, you need to find out Department_id and
+-- Department_name that exists in that city. There are 3 scenarios here;
+-- a)	In a given CITY, there is a SINGLE department
+-- b)	In a given CITY, there is a MORE THAN ONE department
+-- c)	In a given CITY, there is NO department
+
+-- PART 1
+-- 1)	Our first Code Example is a Block without Exception Handler.
+-- It will work properly only if in the given City is ONLY ONE department
+
+DECLARE
+        v_city       locations.city%TYPE := 'VENICE';
+        v_dept#      departments.department_id%TYPE ;
+        v_dname      departments.department_name%TYPE;
+        v_loc#       departments.location_id %TYPE;
+BEGIN
+           SELECT location_id INTO  v_loc#
+           FROM    locations
+           WHERE  UPPER(city) = v_city;
+
+           SELECT department_id, department_name
+           INTO      v_dept#, v_dname
+           FROM    departments
+           WHERE  location_id = v_loc# ;
+   DBMS_OUTPUT.PUT_LINE('Department ID for chosen city is ' || v_dept# ); 
+  DBMS_OUTPUT.PUT_LINE('and your department name is ' || v_dname);
+END;
+
+--    Test 1: Using TORONTO This city location has only one department
+--    
+--    OUTPUT is
+--    Department ID for chosen city is 20
+--    and your department name is Marketing
+
+-- PART 2
+-- Our second Code Example is a Block with Exception Handler that deals with
+-- BOTH exceptions, so you will not get Error messages
+
+DECLARE
+    v_city      locations.city%TYPE := 'VENICE';
+	v_dept#     departments.department_id%TYPE ;
+    v_dname     departments.department_name%TYPE;
+    v_loc#      departments.location_id %TYPE;
+BEGIN
+    SELECT location_id INTO v_loc#
+    FROM   locations
+    WHERE  UPPER(city) = v_city;
+
+    SELECT department_id, department_name
+    INTO   v_dept#, v_dname
+    FROM   departments
+    WHERE  location_id = v_loc# ;
+   DBMS_OUTPUT.PUT_LINE(
+   'In the chosen city your department id is ' || v_dept# ||
+   ' and your department name is ' || v_dname);
+EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE(
+            'In the chosen city ' || v_city || ' there is NO department.');
+      WHEN TOO_MANY_ROWS THEN
+            DBMS_OUTPUT.PUT_LINE(
+            'In the chosen city '
+            || v_city || ' there is MORE THAN ONE department.');    
+END;
+
+-- PART 3
+-- Our third Code Example is a Stored Procedure that accepts one IN parameter,
+-- CITY name. Watch how the code has changed, when using p_city and not v_city
+
+CREATE OR REPLACE PROCEDURE find_dept (p_city locations.city%TYPE)
+IS
+       v_dept#      departments.department_id%TYPE ;
+       v_dname      departments.department_name%TYPE;
+       v_loc#       departments.location_id%TYPE;
+BEGIN
+           SELECT location_id INTO v_loc#
+           FROM   locations
+           WHERE  UPPER(city) = p_city;
+
+           SELECT department_id, department_name
+           INTO   v_dept#, v_dname
+           FROM   departments
+           WHERE  location_id = v_loc#;
+   		DBMS_OUTPUT.PUT_LINE('Department id is ' || v_dept#);
+   		DBMS_OUTPUT.PUT_LINE('Name is ' || v_dname);
+EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('City ' || p_city || ' there is NO department.');
+      WHEN TOO_MANY_ROWS THEN
+            DBMS_OUTPUT.PUT_LINE('City ' || p_city || ' there is MORE THAN ONE department.');    
+END;
+
+-- Run
+EXECUTE find_dept('OXFORD');
+-- OUTPUT:
+-- Department id is 80
+-- Name is Sales
+
+EXECUTE find_dept('SEATTLE');
+-- City SEATTLE there is MORE THAN ONE department.
+-- PL/SQL procedure successfully completed.
+
+EXECUTE find_dept('VENICE');
+-- City VENICE there is NO department.
+-- PL/SQL procedure successfully completed.
+
