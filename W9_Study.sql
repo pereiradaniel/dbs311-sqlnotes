@@ -430,3 +430,47 @@ EXECUTE find_dept('VENICE');
 -- City VENICE there is NO department.
 -- PL/SQL procedure successfully completed.
 
+
+-- Problem: For a given EMPLOYEE last name, you need to find out his/her
+-- salary and provide a comment (note) about that amount.
+--•	Less than $3,000 ? POOR
+--•	Less than $6,000 ? FAIR
+--•	Less than $10,000 ? GOOD
+--•	Less or equal than  $15,000 ? EXCELLENT
+--•	More than $15,000 ? WOW
+
+-- You also need to be prepared for a name that does NOT exist and for the
+-- case when more than      one person holds the same name.
+-- 1) Our first Code Example is a Block without Exception Handler.
+--    It will work properly only if for a given LAST NAME, there is
+--    ONLY ONE person.
+
+DECLARE        
+  v_lname employees.last_name%TYPE := 'HIGGINS' ;
+  v_pay   employees.salary%TYPE;
+  v_note  VARCHAR2(20) := 'FAIR';
+BEGIN
+	SELECT salary INTO v_pay
+	FROM   employees
+	WHERE  UPPER(last_name) = v_lname;
+        IF       v_pay  < 3000  THEN v_note := 'POOR';         
+           ELSIF v_pay  < 6000  THEN v_note := 'FAIR';        
+           ELSIF v_pay  < 10000 THEN v_note := 'GOOD';
+           ELSIF v_pay <= 15000 THEN v_note := 'EXCELLENT';
+           ELSE  v_note := 'WOW';
+         END IF; 
+
+DBMS_OUTPUT.PUT_LINE(
+  'Employee ' || v_lname || ' Monthly income of  $' ||  v_pay ||
+  ' which is ' || v_note);
+END;
+
+INSERT INTO employees (employee_id, last_name, email, hire_date, job_id,salary)
+VALUES (901, 'Grant','pgrant@yahoo.ca',sysdate,'IT_PROG',14000);
+INSERT INTO employees (employee_id, last_name, email, hire_date, job_id,salary)
+VALUES (902, 'Grant','grant2@yahoo.ca',sysdate,'IT_PROG',14000);
+
+SELECT employee_id, last_name,job_id,salary
+FROM employees   WHERE last_name = 'Grant';
+
+
