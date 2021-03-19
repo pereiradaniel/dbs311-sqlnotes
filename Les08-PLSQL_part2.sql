@@ -441,3 +441,137 @@ BEGIN
         END IF;
 END;
 
+--Adding a bit more
+--
+--Put a counter in to see how many rows generated.
+
+DECLARE
+    cnt         NUMBER :=0; -- start a counter
+    e_last_name employees.last_name%type;  
+    e_job_tile  employees.job_id%type;  
+
+  	CURSOR emp_cursor IS
+        SELECT last_name, job_id
+		FROM employees
+    	WHERE job_id LIKE 'A%' 
+    	ORDER BY last_name;
+BEGIN
+    FOR item IN emp_cursor LOOP -- begins FOR loop
+        DBMS_OUTPUT.PUT_LINE
+            ('NAME = ' || item.last_name || ', JOB = ' || item.job_id);
+        cnt := cnt + 1;
+    END LOOP;
+ 
+    IF cnt >0 THEN
+        dbms_output.put_line(cnt || ' Rows Updated');
+    ELSE
+        dbms_output.put_line('NO Rows were found Updated Found');
+    END IF;
+
+    IF emp_cursor%ISOPEN THEN
+        CLOSE emp_cursor;
+    END IF;
+END;
+
+
+-- USER-DEFINED FUNCTION
+--
+--Create a PL/SQL Function
+--Generic
+--
+--    CREATE [OR REPLACE] FUNCTION function_name (parameter_list)
+--        RETURN return_type
+--    IS/AS
+--        [declarative section]
+--    BEGIN
+--        [executable section]
+--    [EXCEPTION]
+--        [exception-handling section]
+--     RETURN return_value
+--    END;
+
+--PL/SQL Function Example
+
+CREATE OR REPLACE FUNCTION find_max_price
+RETURN NUMBER
+IS
+    max_price NUMBER := 0;
+
+BEGIN
+    -- get the maximum prod_sell price
+    SELECT MAX(prod_sell)
+    INTO max_price
+    FROM products;
+    
+    -- return the max price
+    RETURN max_price;
+
+END;
+
+--Run the above just compiles it
+--It returns maximum list price, but we never showed what it was.
+
+--Using Functions in Assignment Statements
+
+--A function returns a value
+--
+--Assign the value to a variable and use it
+
+
+DECLARE
+    highest_price	products.prod_sell%type := 0.0;
+BEGIN
+   highest_price := find_max_price(); -- call the function
+   dbms_output.put_line
+   ('The maximum price is ' || highest_price); -- output the results
+END;
+
+--Using Functions in Conditional Statements
+
+DECLARE
+    new_price 	products.prod_sell%type := 9;
+BEGIN
+    IF (new_price < find_max_price()) THEN  	--   used the function for comparison
+        dbms_output.put_line('The new price is lower than the maximum price.'); 
+    ELSE
+        dbms_output.put_line('The new price is higher than the maximum price.'); 
+    END IF;
+END;
+
+--Use PL/SQL Functions in SQL Statements
+--
+--PROBLEM: Company wished to double the price of each product.
+--
+--Return a list of products where the new doubled price is greater than the current maximum price
+
+--EXAMPLE SQL
+
+
+SELECT 	prod_no, 
+		prod_name, 
+		prod_sell, 
+		(prod_sell * 2) as "New Price"
+FROM 	products
+WHERE 	(prod_sell * 2) > find_max_price();
+
+--Extra sample: 
+--Showing control over output to get another layout
+
+DECLARE
+    cursor XX is select * 
+                from employees
+                where employee_id <=7600;
+    tmp employees%rowtype;
+BEGIN 
+    -- OPEN X; -- opened and close by FOR loop
+    FOR tmp IN XX 
+    LOOP
+        dbms_output.put_line('No:    '||tmp.employee_id);
+        dbms_output.put_line('Name:  '||tmp.last_name);
+        dbms_output.put_line('Job:  '||tmp.job_id);
+        dbms_output.put_line('Salary:'||tmp.salary);
+        dbms_output.put_line(' --------------------');
+           
+    END Loop;
+    -- CLOSE X;
+END;
